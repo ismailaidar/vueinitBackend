@@ -2,15 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using patients.Models;
-using patients.Wrappers;
 using patients.Filters;
-using patients.Services;
 using patients.Helpers;
-using Microsoft.AspNetCore.Cors;
+using patients.Models;
+using patients.Services;
+using patients.Wrappers;
 
 namespace patients.Controllers
 {
@@ -71,11 +69,14 @@ namespace patients.Controllers
 
         List<Patient> FilterPatient(IEnumerable<Patient> patients, string seachText)
         {
-            return patients
-                    .Where(p => p.LastName.Contains(seachText) ||
-                                p.FirstName.Contains(seachText))
-                    .ToList();
+            string[] patientFields = { "Id", "FirstName", "LastName", "Category", "Dob", "Insurance", "Drug"};
 
+            foreach (var field in patientFields)
+            {
+                patients = patients
+                                .Where(p => p[field].ToString().Contains(seachText)).ToList();
+            }
+            return patients.ToList();
         }
 
         List<Patient> SortPatient(IEnumerable<Patient> patients, string[] sortBy)

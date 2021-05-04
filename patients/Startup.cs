@@ -1,12 +1,12 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
-using Microsoft.EntityFrameworkCore;
 using patients.Services;
-using Microsoft.AspNetCore.Http;
 
 namespace patients
 {
@@ -22,16 +22,31 @@ namespace patients
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddDbContext<PatientDbContext>(options =>
+                    options.UseSqlite(Configuration.GetConnectionString("PatientDbContext")));
+
+
+            services.AddSpaStaticFiles(configuration: options => { options.RootPath = "wwwroot"; });
+            services.AddControllers();
             services.AddCors(options =>
             {
-                options.AddPolicy(name: "MyPolicy",
-                    builder =>
-                    {
-                        builder.WithOrigins("http://localhost:8080/")
-                                .WithMethods("PUT", "DELETE", "GET", "POST");
-                    });
+                options.AddPolicy("VueCorsPolicy", builder =>
+                {
+                    builder
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials()
+                    .WithOrigins("https://localhost:5001");
+                });
+            });
+            
+            services.AddMvc(option => option.EnableEndpointRouting = false);
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "patients", Version = "v1" });
             });
 
+            // DI
             services.AddHttpContextAccessor();
             services.AddSingleton<IUriService>(o =>
             {
@@ -41,15 +56,11 @@ namespace patients
                 return new UriService(uri);
             });
 
-            services.AddControllers();
-            services.AddSwaggerGen(c =>
+            // In production, the SPA files will be served from this directory
+            services.AddSpaStaticFiles(configuration =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "patients", Version = "v1" });
+                configuration.RootPath = "vueInit/dist";
             });
-
-            services.AddDbContext<PatientDbContext>(options =>
-                    options.UseSqlite(Configuration.GetConnectionString("PatientDbContext")));
-
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -62,18 +73,28 @@ namespace patients
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "patients v1"));
             }
 
-            app.UseHttpsRedirection();
+            app.UseCors("VueCorsPolicy");
 
-            app.UseCors();
+            app.UseHttpsRedirection();
 
             app.UseRouting();
 
+            app.UseMvc();
+            app.UseRouting();
             app.UseAuthorization();
+            app.UseAuthorization();
+            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+            app.UseSpaStaticFiles();
 
-            app.UseEndpoints(endpoints =>
+            app.UseSpa(configuration: builder =>
             {
-                endpoints.MapControllers();
+                builder.Options.SourcePath = "vueInit";
+                if (env.IsDevelopment())
+                {
+                    builder.UseProxyToSpaDevelopmentServer("http://localhost:8080");
+                }
             });
+
         }
     }
 }
