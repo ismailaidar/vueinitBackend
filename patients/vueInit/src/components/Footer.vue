@@ -7,7 +7,7 @@
                     <div class="px-0">
                         <h3 class="font-bold font-bold text-gray-900">Copyrights @2021</h3>
                         <p class="py-4 text-gray-600 text-sm">
-                            Made with love.
+                            Made with love. ❤️
                         </p>
                     </div>
                 </div>

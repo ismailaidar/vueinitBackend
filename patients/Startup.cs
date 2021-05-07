@@ -1,12 +1,14 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.SpaServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using patients.Services;
+using VueCliMiddleware;
 
 namespace patients
 {
@@ -26,7 +28,7 @@ namespace patients
                     options.UseSqlite(Configuration.GetConnectionString("PatientDbContext")));
 
 
-            services.AddSpaStaticFiles(configuration: options => { options.RootPath = "wwwroot"; });
+            services.AddSpaStaticFiles(configuration: options => { options.RootPath = "vueInit/dist"; });
             services.AddControllers();
             services.AddCors(options =>
             {
@@ -94,6 +96,28 @@ namespace patients
                     builder.UseProxyToSpaDevelopmentServer("http://localhost:8080");
                 }
             });
+
+            if (System.Diagnostics.Debugger.IsAttached)
+            {
+                app.UseEndpoints(endpoints =>
+                {
+                    endpoints.MapControllers();
+
+                    // NOTE: VueCliProxy is meant for developement and hot module reload
+                    // NOTE: SSR has not been tested
+                    // Production systems should only need the UseSpaStaticFiles() (above)
+                    // You could wrap this proxy in either
+                    // if (System.Diagnostics.Debugger.IsAttached)
+                    // or a preprocessor such as #if DEBUG
+                    endpoints.MapToVueCliProxy(
+                        "{*path}",
+                        new SpaOptions { SourcePath = "vueInit" },
+                        npmScript: (System.Diagnostics.Debugger.IsAttached) ? "serve" : null,
+                        regex: "Compiled successfully",
+                        forceKill: true
+                        );
+                });
+            }
 
         }
     }
