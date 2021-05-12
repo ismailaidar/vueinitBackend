@@ -71,11 +71,16 @@ namespace patients.Controllers
         {
             string[] patientFields = { "Id", "FirstName", "LastName", "Category", "Dob", "Insurance", "Drug"};
 
-            foreach (var field in patientFields)
+            var query = "Select * from Patient where Id like '"+seachText+"'";
+            for (int i = 1; i < patientFields.Length; i++)
             {
-                patients = patients
-                                .Where(p => p[field].ToString().Contains(seachText)).ToList();
+                query += "or " + patientFields[i] + " like '%"+seachText+"%'";
             }
+
+            patients = _context.Patient
+                .FromSqlRaw(query)
+                .ToList();
+
             return patients.ToList();
         }
 
