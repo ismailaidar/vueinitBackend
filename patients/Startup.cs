@@ -58,11 +58,7 @@ namespace patients
                 return new UriService(uri);
             });
 
-            // In production, the SPA files will be served from this directory
-            services.AddSpaStaticFiles(configuration =>
-            {
-                configuration.RootPath = "vueInit/dist";
-            });
+            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -88,36 +84,36 @@ namespace patients
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
             app.UseSpaStaticFiles();
 
-            app.UseSpa(configuration: builder =>
-            {
-                builder.Options.SourcePath = "vueInit";
-                if (env.IsDevelopment())
-                {
-                    builder.UseProxyToSpaDevelopmentServer("http://localhost:8080");
-                }
-            });
+            //app.UseSpa(configuration: builder =>
+            //{
+            //    builder.Options.SourcePath = "vueInit";
+            //    if (env.IsDevelopment())
+            //    {
+            //        builder.UseProxyToSpaDevelopmentServer("http://localhost:8080");
+            //    }
+            //});
 
-            if (System.Diagnostics.Debugger.IsAttached)
-            {
-                app.UseEndpoints(endpoints =>
-                {
-                    endpoints.MapControllers();
+            //if (System.Diagnostics.Debugger.IsAttached)
+            //{
+            //    app.UseEndpoints(endpoints =>
+            //    {
+            //        endpoints.MapControllers();
 
-                    // NOTE: VueCliProxy is meant for developement and hot module reload
-                    // NOTE: SSR has not been tested
-                    // Production systems should only need the UseSpaStaticFiles() (above)
-                    // You could wrap this proxy in either
-                    // if (System.Diagnostics.Debugger.IsAttached)
-                    // or a preprocessor such as #if DEBUG
-                    endpoints.MapToVueCliProxy(
-                        "{*path}",
-                        new SpaOptions { SourcePath = "vueInit" },
-                        npmScript: (System.Diagnostics.Debugger.IsAttached) ? "serve" : null,
-                        regex: "Compiled successfully",
-                        forceKill: true
-                        );
-                });
-            }
+            //        // NOTE: VueCliProxy is meant for developement and hot module reload
+            //        // NOTE: SSR has not been tested
+            //        // Production systems should only need the UseSpaStaticFiles() (above)
+            //        // You could wrap this proxy in either
+            //        // if (System.Diagnostics.Debugger.IsAttached)
+            //        // or a preprocessor such as #if DEBUG
+            //        endpoints.MapToVueCliProxy(
+            //            "{*path}",
+            //            new SpaOptions { SourcePath = "vueInit" },
+            //            npmScript: (System.Diagnostics.Debugger.IsAttached) ? "serve" : null,
+            //            regex: "Compiled successfully",
+            //            forceKill: true
+            //            );
+            //    });
+            //}
 
         }
     }
